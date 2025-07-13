@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { createGiftAPI } from '../../../api/auth';
+import { createGiftAPI } from 'api';
 
 export default function CreateGift() {
   const [open, setOpen] = React.useState(false);

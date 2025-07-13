@@ -30,7 +30,7 @@ import Snackbar from '@mui/material/Snackbar';
 
 // project imports
 import MainCard from 'components/MainCard';
-import { getUsersAPI, updateUserRoleAPI } from 'api/auth';
+import { getUsersAPI, updateUserRoleAPI } from 'api';
 
 // assets
 import UserOutlined from '@ant-design/icons/UserOutlined';

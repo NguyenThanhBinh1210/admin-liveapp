@@ -11,7 +11,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 
 // project imports
-import { getDashboardStatsAPI } from 'api/auth';
+import { getDashboardStatsAPI } from 'api';
 
 // assets
 import UserOutlined from '@ant-design/icons/UserOutlined';

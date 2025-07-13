@@ -28,7 +28,7 @@ import Avatar from '@mui/material/Avatar';
 
 // project imports
 import MainCard from 'components/MainCard';
-import { getGiftsAPI } from 'api/auth';
+import { getGiftsAPI } from 'api';
 
 // assets
 import GiftOutlined from '@ant-design/icons/GiftOutlined';

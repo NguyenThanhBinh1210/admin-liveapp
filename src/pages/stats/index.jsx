@@ -13,7 +13,7 @@ import Divider from '@mui/material/Divider';
 
 // project imports
 import MainCard from 'components/MainCard';
-import { getStatsAPI } from 'api/auth';
+import { getStatsAPI } from 'api';
 
 // assets
 import UserOutlined from '@ant-design/icons/UserOutlined';

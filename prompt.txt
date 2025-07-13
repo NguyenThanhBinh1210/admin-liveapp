@@ -1,0 +1,277 @@
+# PHÂN TÍCH DỰ ÁN ADMIN-LIVEAPP
+
+## 📋 TỔNG QUAN DỰ ÁN
+
+### Thông tin cơ bản:
+- **Tên dự án**: admin-liveapp (Mantis Material Free React)
+- **Phiên bản**: 1.5.0
+- **Framework**: React 19.1.0 + Vite 6.3.1
+- **UI Library**: Material-UI (MUI) 7.0.2 + Ant Design 5.26.4
+- **Routing**: React Router 7.5.1
+- **State Management**: SWR 2.3.3
+- **HTTP Client**: Axios 1.10.0
+- **Authentication**: JWT với Cookies (js-cookie 3.0.5)
+
+### Mục đích:
+- Ứng dụng quản trị (Admin Panel) cho hệ thống livestream
+- Quản lý users, top-up requests, withdraw requests, gifts, config và thống kê
+
+## 🔧 CẤU HÌNH & API
+
+### 1. **API Base URL** (Quan trọng):
+```javascript
+// File: src/api/config.js
+const API_BASE_URL = 'https://apilive.loltips.net/api/v1';
+```
+
+### 2. **Cấu hình ứng dụng**:
+```javascript
+// File: src/config.js
+export const APP_DEFAULT_PATH = '/dashboard/default';
+export const DRAWER_WIDTH = 260;
+export const MINI_DRAWER_WIDTH = 60;
+```
+
+### 3. **Environment Variables**:
+- `VITE_APP_BASE_NAME`: Base name cho routing
+- Sử dụng trong vite.config.mjs và routing
+
+### 4. **Authentication System**:
+- **Access Token**: Lưu trong cookie, expires 7 ngày
+- **Refresh Token**: Lưu trong cookie, expires 30 ngày
+- **Cookie Settings**: 
+  - Path: '/'
+  - SameSite: 'Lax'
+  - Secure: false (development)
+
+## 🏗️ KIẾN TRÚC DỰ ÁN
+
+### 1. **Cấu trúc thư mục**:
+```
+src/
+├── api/                 # API calls
+│   ├── config.js       # Axios configuration & interceptors
+│   ├── auth.js         # Authentication APIs
+│   ├── user.js         # User management APIs
+│   ├── gift.js         # Gifts management APIs
+│   ├── wallet.js       # Wallet/Payment APIs
+│   ├── admin.js        # Admin functions APIs
+│   ├── menu.js         # Menu state management
+│   └── index.js        # Central export point
+├── components/         # Reusable components
+├── hooks/              # Custom hooks
+├── layout/             # Layout components
+├── menu-items/         # Menu configuration
+├── pages/              # Page components
+├── routes/             # Routing configuration
+├── themes/             # Theme customization
+└── utils/              # Utility functions
+```
+
+### 2. **Routing Structure**:
+- **Main Routes**: Được bảo vệ bởi ProtectedRoute
+- **Login Routes**: Không cần authentication
+- **Protected Routes**: Kiểm tra JWT token trong cookies
+
+### 3. **Menu System**:
+```javascript
+// Các module chính:
+- Dashboard (default)
+- Administration:
+  - Users Management (/users)
+  - Top-up Requests (/topup-requests)
+  - Withdraw Requests (/withdraw-requests)
+  - Gifts Management (/gifts)
+  - System Config (/config)
+  - Platform Statistics (/stats)
+```
+
+## 🔐 AUTHENTICATION FLOW
+
+### 1. **Login Process**:
+1. User nhập email/password
+2. Gọi API: `POST /auth/login`
+3. Nhận accessToken & refreshToken
+4. Lưu tokens vào cookies
+5. Redirect đến dashboard
+
+### 2. **Token Management**:
+- **Axios Interceptor**: Tự động thêm Bearer token vào headers
+- **Auto Refresh**: Khi token hết hạn (401), tự động refresh
+- **Logout**: Xóa cookies và redirect về login
+
+### 3. **Route Protection**:
+```javascript
+// ProtectedRoute component kiểm tra:
+- isAuthenticated() từ cookies
+- Redirect về /login nếu chưa auth
+- Lưu current path để redirect back
+```
+
+## 📊 CHỨC NĂNG CHÍNH
+
+### 1. **User Management**:
+- **API**: `/admin/users`
+- **Chức năng**: Xem danh sách, cập nhật role
+- **Filters**: email, page, limit, role
+
+### 2. **Top-up Requests**:
+- **API**: `/admin/topup-requests`
+- **Chức năng**: Xem requests, approve/reject
+- **Status**: pending, approved, rejected
+
+### 3. **Withdraw Requests**:
+- **API**: `/admin/withdraw-requests`
+- **Chức năng**: Xem requests, approve/reject
+- **Status**: pending, approved, rejected
+
+### 4. **Gifts Management**:
+- **API**: `/admin/gifts`
+- **CRUD**: Create, Read, Update gifts
+- **Features**: Gift creation, editing
+
+### 5. **System Config**:
+- **API**: `/admin/config`
+- **Chức năng**: Xem và cập nhật cấu hình hệ thống
+
+### 6. **Statistics**:
+- **API**: `/admin/stats`, `/admin/dashboard-stats`
+- **Chức năng**: Thống kê platform và dashboard
+
+## 🛠️ CÔNG NGHỆ SỬ DỤNG
+
+### Frontend Stack:
+- **React 19.1.0**: Core framework
+- **Vite 6.3.1**: Build tool
+- **Material-UI 7.0.2**: Primary UI components
+- **Ant Design 5.26.4**: Additional UI components
+- **React Router 7.5.1**: Routing
+- **SWR 2.3.3**: Data fetching & caching
+- **Axios 1.10.0**: HTTP client
+- **Formik 2.4.6**: Form handling
+- **Yup 1.6.1**: Form validation
+- **js-cookie 3.0.5**: Cookie management
+- **Framer Motion 12.8.2**: Animations
+
+### Development Tools:
+- **ESLint 9.25.1**: Code linting
+- **Prettier 3.5.3**: Code formatting
+- **Knip 5.45.0**: Unused code detection
+
+## 🔄 STATE MANAGEMENT
+
+### 1. **SWR cho API calls**:
+- Cache & revalidation
+- Loading states
+- Error handling
+
+### 2. **Menu State**:
+```javascript
+// src/api/menu.js
+- isDashboardDrawerOpened: Boolean
+- Sử dụng SWR mutate để update state
+```
+
+### 3. **Authentication State**:
+```javascript
+// src/hooks/useAuth.js
+- isAuth: Boolean
+- token: String
+- checkAuth(): Function
+```
+
+## 📝 CODING STANDARDS
+
+### 1. **Component Structure**:
+- Functional components với hooks
+- Lazy loading cho pages
+- Loadable wrapper cho code splitting
+
+### 2. **API Structure**:
+- **Modular Design**: Tách API theo chức năng
+- **Centralized Config**: Axios instance và interceptors trong `config.js`
+- **Consistent Error Format**: Unified error handling
+- **Easy Import**: Central export point từ `index.js`
+
+### 3. **API Modules**:
+- **config.js**: Base configuration, interceptors
+- **auth.js**: Authentication (login, logout, profile)
+- **user.js**: User management (CRUD users)
+- **gift.js**: Gifts management (CRUD gifts)
+- **wallet.js**: Wallet operations (topup, withdraw)
+- **admin.js**: Admin functions (config, stats, logs)
+- **menu.js**: Menu state management
+- **index.js**: Central export point
+
+### 4. **File Naming**:
+- PascalCase cho components
+- camelCase cho utilities
+- kebab-case cho routes
+
+## 🚀 BUILD & DEPLOYMENT
+
+### Scripts:
+```json
+"start": "vite"                    # Development server
+"build": "vite build"              # Production build
+"build-stage": "env-cmd -f .env.qa vite build"  # Staging build
+"preview": "vite preview"          # Preview build
+```
+
+### Build Configuration:
+- **Port**: 3000
+- **Base URL**: Từ environment variable
+- **Auto-open**: Browser tự động mở
+- **Host**: true (cho network access)
+
+## 🔍 ĐIỂM QUAN TRỌNG CẦN LƯU Ý
+
+### 1. **API Endpoint**:
+- Base URL: `https://apilive.loltips.net/api/v1`
+- Có thể thay đổi trong `src/api/config.js`
+
+### 2. **Authentication**:
+- Sử dụng cookies thay vì localStorage
+- Auto-refresh token mechanism
+- Secure cookie settings cần update cho production
+
+### 3. **Error Handling**:
+- Centralized error handling trong axios interceptors
+- Consistent error format across app
+
+### 4. **Performance**:
+- Lazy loading cho pages
+- SWR caching cho API calls
+- Code splitting với Loadable
+
+### 5. **Security**:
+- CSRF protection với SameSite cookies
+- JWT token validation
+- Route protection
+
+## 📋 TODO & IMPROVEMENTS
+
+### 1. **Security Enhancements**:
+- Set secure: true cho production
+- Add CSRF token validation
+- Implement rate limiting
+
+### 2. **Performance**:
+- Add service worker
+- Implement virtual scrolling cho large lists
+- Optimize bundle size
+
+### 3. **UX Improvements**:
+- Add loading skeletons
+- Implement offline support
+- Add toast notifications
+
+### 4. **Code Quality**:
+- Add unit tests
+- Implement TypeScript
+- Add Storybook for components
+
+---
+
+**Cập nhật lần cuối**: $(date)
+**Phiên bản phân tích**: 1.0.0 

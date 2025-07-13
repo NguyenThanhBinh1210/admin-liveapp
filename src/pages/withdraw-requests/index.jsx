@@ -28,7 +28,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 // project imports
 import MainCard from 'components/MainCard';
-import { getWithdrawRequestsAPI } from 'api/auth';
+import { getWithdrawRequestsAPI, updateWithdrawRequestStatusAPI } from 'api';
 
 // assets
 import SendOutlined from '@ant-design/icons/SendOutlined';
@@ -36,7 +36,6 @@ import SearchOutlined from '@ant-design/icons/SearchOutlined';
 import FilterOutlined from '@ant-design/icons/FilterOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import DollarOutlined from '@ant-design/icons/DollarOutlined';
-import { updateWithdrawRequestStatusAPI } from 'api/auth';
 import { IconButton, Snackbar } from '@mui/material';
 import { CheckOutlined, CloseOutlined, EditOutlined, RollbackOutlined } from '@ant-design/icons';
 

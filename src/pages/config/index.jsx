@@ -18,7 +18,7 @@ import IconButton from '@mui/material/IconButton';
 
 // project imports
 import MainCard from 'components/MainCard';
-import { getConfigAPI, updateConfigAPI } from 'api/auth';
+import { getConfigAPI, updateConfigAPI } from 'api';
 
 // assets
 import SettingOutlined from '@ant-design/icons/SettingOutlined';

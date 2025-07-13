@@ -24,7 +24,7 @@ import { Formik } from 'formik';
 // project imports
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
-import { loginAPI } from 'api/auth';
+import { loginAPI } from 'api';
 
 // assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';

@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { createGiftAPI, updateGiftAPI } from '../../../api/auth';
+import { createGiftAPI, updateGiftAPI } from 'api';
 import { EditOutlined } from '@ant-design/icons';
 
 export default function EditGift({ gift }) {

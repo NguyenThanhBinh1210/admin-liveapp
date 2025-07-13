@@ -25,7 +25,7 @@ import Avatar from 'components/@extended/Avatar';
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
 import IconButton from 'components/@extended/IconButton';
-import { getUserProfileAPI, logoutAPI, isAuthenticated, getToken } from 'api/auth';
+import { getUserProfileAPI, logoutAPI, isAuthenticated, getToken } from 'api';
 
 // assets
 import LogoutOutlined from '@ant-design/icons/LogoutOutlined';

@@ -28,7 +28,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 // project imports
 import MainCard from 'components/MainCard';
-import { getTopupRequestsAPI, updateTopupRequestStatusAPI } from 'api/auth';
+import { getTopupRequestsAPI, updateTopupRequestStatusAPI } from 'api';
 
 // assets
 import WalletOutlined from '@ant-design/icons/WalletOutlined';

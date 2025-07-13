@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { isAuthenticated, getToken } from 'api/auth';
+import { isAuthenticated, getToken } from 'api';
 
 // ==============================|| AUTH HOOK ||============================== //
 

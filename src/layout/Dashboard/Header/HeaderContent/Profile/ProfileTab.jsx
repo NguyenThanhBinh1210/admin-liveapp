@@ -12,7 +12,7 @@ import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 
 // project imports
-import { logoutAPI } from 'api/auth';
+import { logoutAPI } from 'api';
 
 // assets
 import EditOutlined from '@ant-design/icons/EditOutlined';

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { isAuthenticated } from 'api/auth';
+import { isAuthenticated } from 'api';
 
 // ==============================|| PROTECTED ROUTE ||============================== //
 
