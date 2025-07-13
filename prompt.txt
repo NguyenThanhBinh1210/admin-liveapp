@@ -1,277 +1,1754 @@
-# PHÂN TÍCH DỰ ÁN ADMIN-LIVEAPP
+# 🛡️ API ADMIN GUIDE - LIVESTREAM PLATFORM ADMINISTRATION
 
-## 📋 TỔNG QUAN DỰ ÁN
+## 🌟 Tổng quan
 
-### Thông tin cơ bản:
-- **Tên dự án**: admin-liveapp (Mantis Material Free React)
-- **Phiên bản**: 1.5.0
-- **Framework**: React 19.1.0 + Vite 6.3.1
-- **UI Library**: Material-UI (MUI) 7.0.2 + Ant Design 5.26.4
-- **Routing**: React Router 7.5.1
-- **State Management**: SWR 2.3.3
-- **HTTP Client**: Axios 1.10.0
-- **Authentication**: JWT với Cookies (js-cookie 3.0.5)
+Đây là hướng dẫn chi tiết về tất cả API endpoints dành cho **Admin Dashboard** trong hệ thống livestream platform. Tài liệu này bao gồm:
 
-### Mục đích:
-- Ứng dụng quản trị (Admin Panel) cho hệ thống livestream
-- Quản lý users, top-up requests, withdraw requests, gifts, config và thống kê
-
-## 🔧 CẤU HÌNH & API
-
-### 1. **API Base URL** (Quan trọng):
-```javascript
-// File: src/api/config.js
-const API_BASE_URL = 'https://apilive.loltips.net/api/v1';
-```
-
-### 2. **Cấu hình ứng dụng**:
-```javascript
-// File: src/config.js
-export const APP_DEFAULT_PATH = '/dashboard/default';
-export const DRAWER_WIDTH = 260;
-export const MINI_DRAWER_WIDTH = 60;
-```
-
-### 3. **Environment Variables**:
-- `VITE_APP_BASE_NAME`: Base name cho routing
-- Sử dụng trong vite.config.mjs và routing
-
-### 4. **Authentication System**:
-- **Access Token**: Lưu trong cookie, expires 7 ngày
-- **Refresh Token**: Lưu trong cookie, expires 30 ngày
-- **Cookie Settings**: 
-  - Path: '/'
-  - SameSite: 'Lax'
-  - Secure: false (development)
-
-## 🏗️ KIẾN TRÚC DỰ ÁN
-
-### 1. **Cấu trúc thư mục**:
-```
-src/
-├── api/                 # API calls
-│   ├── config.js       # Axios configuration & interceptors
-│   ├── auth.js         # Authentication APIs
-│   ├── user.js         # User management APIs
-│   ├── gift.js         # Gifts management APIs
-│   ├── wallet.js       # Wallet/Payment APIs
-│   ├── admin.js        # Admin functions APIs
-│   ├── menu.js         # Menu state management
-│   └── index.js        # Central export point
-├── components/         # Reusable components
-├── hooks/              # Custom hooks
-├── layout/             # Layout components
-├── menu-items/         # Menu configuration
-├── pages/              # Page components
-├── routes/             # Routing configuration
-├── themes/             # Theme customization
-└── utils/              # Utility functions
-```
-
-### 2. **Routing Structure**:
-- **Main Routes**: Được bảo vệ bởi ProtectedRoute
-- **Login Routes**: Không cần authentication
-- **Protected Routes**: Kiểm tra JWT token trong cookies
-
-### 3. **Menu System**:
-```javascript
-// Các module chính:
-- Dashboard (default)
-- Administration:
-  - Users Management (/users)
-  - Top-up Requests (/topup-requests)
-  - Withdraw Requests (/withdraw-requests)
-  - Gifts Management (/gifts)
-  - System Config (/config)
-  - Platform Statistics (/stats)
-```
-
-## 🔐 AUTHENTICATION FLOW
-
-### 1. **Login Process**:
-1. User nhập email/password
-2. Gọi API: `POST /auth/login`
-3. Nhận accessToken & refreshToken
-4. Lưu tokens vào cookies
-5. Redirect đến dashboard
-
-### 2. **Token Management**:
-- **Axios Interceptor**: Tự động thêm Bearer token vào headers
-- **Auto Refresh**: Khi token hết hạn (401), tự động refresh
-- **Logout**: Xóa cookies và redirect về login
-
-### 3. **Route Protection**:
-```javascript
-// ProtectedRoute component kiểm tra:
-- isAuthenticated() từ cookies
-- Redirect về /login nếu chưa auth
-- Lưu current path để redirect back
-```
-
-## 📊 CHỨC NĂNG CHÍNH
-
-### 1. **User Management**:
-- **API**: `/admin/users`
-- **Chức năng**: Xem danh sách, cập nhật role
-- **Filters**: email, page, limit, role
-
-### 2. **Top-up Requests**:
-- **API**: `/admin/topup-requests`
-- **Chức năng**: Xem requests, approve/reject
-- **Status**: pending, approved, rejected
-
-### 3. **Withdraw Requests**:
-- **API**: `/admin/withdraw-requests`
-- **Chức năng**: Xem requests, approve/reject
-- **Status**: pending, approved, rejected
-
-### 4. **Gifts Management**:
-- **API**: `/admin/gifts`
-- **CRUD**: Create, Read, Update gifts
-- **Features**: Gift creation, editing
-
-### 5. **System Config**:
-- **API**: `/admin/config`
-- **Chức năng**: Xem và cập nhật cấu hình hệ thống
-
-### 6. **Statistics**:
-- **API**: `/admin/stats`, `/admin/dashboard-stats`
-- **Chức năng**: Thống kê platform và dashboard
-
-## 🛠️ CÔNG NGHỆ SỬ DỤNG
-
-### Frontend Stack:
-- **React 19.1.0**: Core framework
-- **Vite 6.3.1**: Build tool
-- **Material-UI 7.0.2**: Primary UI components
-- **Ant Design 5.26.4**: Additional UI components
-- **React Router 7.5.1**: Routing
-- **SWR 2.3.3**: Data fetching & caching
-- **Axios 1.10.0**: HTTP client
-- **Formik 2.4.6**: Form handling
-- **Yup 1.6.1**: Form validation
-- **js-cookie 3.0.5**: Cookie management
-- **Framer Motion 12.8.2**: Animations
-
-### Development Tools:
-- **ESLint 9.25.1**: Code linting
-- **Prettier 3.5.3**: Code formatting
-- **Knip 5.45.0**: Unused code detection
-
-## 🔄 STATE MANAGEMENT
-
-### 1. **SWR cho API calls**:
-- Cache & revalidation
-- Loading states
-- Error handling
-
-### 2. **Menu State**:
-```javascript
-// src/api/menu.js
-- isDashboardDrawerOpened: Boolean
-- Sử dụng SWR mutate để update state
-```
-
-### 3. **Authentication State**:
-```javascript
-// src/hooks/useAuth.js
-- isAuth: Boolean
-- token: String
-- checkAuth(): Function
-```
-
-## 📝 CODING STANDARDS
-
-### 1. **Component Structure**:
-- Functional components với hooks
-- Lazy loading cho pages
-- Loadable wrapper cho code splitting
-
-### 2. **API Structure**:
-- **Modular Design**: Tách API theo chức năng
-- **Centralized Config**: Axios instance và interceptors trong `config.js`
-- **Consistent Error Format**: Unified error handling
-- **Easy Import**: Central export point từ `index.js`
-
-### 3. **API Modules**:
-- **config.js**: Base configuration, interceptors
-- **auth.js**: Authentication (login, logout, profile)
-- **user.js**: User management (CRUD users)
-- **gift.js**: Gifts management (CRUD gifts)
-- **wallet.js**: Wallet operations (topup, withdraw)
-- **admin.js**: Admin functions (config, stats, logs)
-- **menu.js**: Menu state management
-- **index.js**: Central export point
-
-### 4. **File Naming**:
-- PascalCase cho components
-- camelCase cho utilities
-- kebab-case cho routes
-
-## 🚀 BUILD & DEPLOYMENT
-
-### Scripts:
-```json
-"start": "vite"                    # Development server
-"build": "vite build"              # Production build
-"build-stage": "env-cmd -f .env.qa vite build"  # Staging build
-"preview": "vite preview"          # Preview build
-```
-
-### Build Configuration:
-- **Port**: 3000
-- **Base URL**: Từ environment variable
-- **Auto-open**: Browser tự động mở
-- **Host**: true (cho network access)
-
-## 🔍 ĐIỂM QUAN TRỌNG CẦN LƯU Ý
-
-### 1. **API Endpoint**:
-- Base URL: `https://apilive.loltips.net/api/v1`
-- Có thể thay đổi trong `src/api/config.js`
-
-### 2. **Authentication**:
-- Sử dụng cookies thay vì localStorage
-- Auto-refresh token mechanism
-- Secure cookie settings cần update cho production
-
-### 3. **Error Handling**:
-- Centralized error handling trong axios interceptors
-- Consistent error format across app
-
-### 4. **Performance**:
-- Lazy loading cho pages
-- SWR caching cho API calls
-- Code splitting với Loadable
-
-### 5. **Security**:
-- CSRF protection với SameSite cookies
-- JWT token validation
-- Route protection
-
-## 📋 TODO & IMPROVEMENTS
-
-### 1. **Security Enhancements**:
-- Set secure: true cho production
-- Add CSRF token validation
-- Implement rate limiting
-
-### 2. **Performance**:
-- Add service worker
-- Implement virtual scrolling cho large lists
-- Optimize bundle size
-
-### 3. **UX Improvements**:
-- Add loading skeletons
-- Implement offline support
-- Add toast notifications
-
-### 4. **Code Quality**:
-- Add unit tests
-- Implement TypeScript
-- Add Storybook for components
+- **Admin Authentication & Permissions**
+- **User Management APIs**
+- **Financial Management (Topup/Withdraw)**
+- **Gift Management**
+- **System Configuration**
+- **Analytics & Statistics**
+- **Socket & Redis Real-time Features**
+- **Notification & Broadcast System**
+- **Best Practices cho Admin**
 
 ---
 
-**Cập nhật lần cuối**: $(date)
-**Phiên bản phân tích**: 1.0.0 
+## 🔐 ADMIN AUTHENTICATION & PERMISSIONS
+
+### Admin Roles Hierarchy
+```
+SUPERADMIN (Highest)
+    ├── Toàn quyền truy cập tất cả APIs
+    ├── System Configuration
+    ├── User Role Management
+    └── Financial Approval
+
+ADMIN (High)
+    ├── User Management
+    ├── Financial Management
+    ├── Gift Management
+    ├── Analytics & Reports
+    └── Support Management
+
+STAFF (Medium)
+    ├── Support Chat Management
+    ├── Basic User Queries
+    └── Content Moderation
+
+MODERATOR (Basic)
+    ├── Content Moderation
+    └── Chat Management
+```
+
+### Authentication Headers
+```javascript
+{
+  "Authorization": "Bearer <admin_jwt_token>",
+  "Content-Type": "application/json"
+}
+```
+
+### Permission Checking
+- **JWT Token** với role `admin`, `superadmin`, `staff`, hoặc `moderator`
+- **Role-based access control** cho từng endpoint
+- **Audit logging** cho các hành động quan trọng
+
+---
+
+## 👥 USER MANAGEMENT MODULE
+
+### 1. Lấy danh sách người dùng
+```http
+GET /admin/users?email=&role=&page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `email` (optional): Tìm kiếm theo email (regex search)
+- `role` (optional): Filter theo role (`user`, `admin`, `moderator`, `superadmin`, `staff`, `streamer`)
+- `page` (optional): Số trang (default: 1)
+- `limit` (optional): Số items mỗi trang (default: 10, max: 100)
+
+**Response (200)**:
+```json
+{
+  "users": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "role": "user",
+      "isActive": true,
+      "balance": 150000,
+      "createdAt": "2023-12-01T00:00:00.000Z",
+      "updatedAt": "2023-12-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 150,
+    "totalPages": 15
+  }
+}
+```
+
+**Use Cases**:
+- Tìm kiếm user theo email
+- Filter user theo role
+- Quản lý user accounts
+- Xem thông tin chi tiết user
+
+### 2. Cập nhật role người dùng
+```http
+PATCH /admin/users/:userId/role
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "role": "moderator"
+}
+```
+
+**Available Roles**:
+- `user`: Người dùng thường
+- `streamer`: Người phát trực tiếp
+- `moderator`: Điều hành viên
+- `staff`: Nhân viên hỗ trợ
+- `admin`: Quản trị viên
+- `superadmin`: Quản trị viên cấp cao
+
+**Response (200)**:
+```json
+{
+  "message": "User role updated successfully",
+  "user": {
+    "_id": "507f1f77bcf86cd799439011",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "moderator"
+  }
+}
+```
+
+**Validation Rules**:
+- Role phải là enum hợp lệ
+- Không thể tự thay đổi role của chính mình
+- SUPERADMIN có thể thay đổi tất cả roles
+- ADMIN không thể tạo SUPERADMIN
+
+---
+
+## 💰 FINANCIAL MANAGEMENT MODULE
+
+### 1. Lấy danh sách yêu cầu nạp tiền
+```http
+GET /admin/topup-requests?status=pending&userId=&page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `status` (optional): `pending`, `approved`, `rejected`
+- `userId` (optional): Filter theo user ID cụ thể
+- `page`, `limit`: Pagination
+
+**Response (200)**:
+```json
+{
+  "requests": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "userId": {
+        "_id": "507f1f77bcf86cd799439012",
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "amount": 100000,
+      "status": "pending",
+      "description": "Yêu cầu nạp tiền thủ công",
+      "note": "Nạp tiền cho tài khoản",
+      "adminNote": null,
+      "createdAt": "2023-12-01T00:00:00.000Z",
+      "updatedAt": "2023-12-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3
+  }
+}
+```
+
+### 2. Duyệt/Từ chối yêu cầu nạp tiền
+```http
+PATCH /wallet/topup/:transactionId/status
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "status": "approved",
+  "adminNote": "Đã duyệt yêu cầu nạp tiền"
+}
+```
+
+**Status Options**:
+- `approved`: Duyệt (sẽ cộng tiền vào ví user)
+- `rejected`: Từ chối (không cộng tiền)
+
+**Response (200)**:
+```json
+{
+  "message": "Đã duyệt yêu cầu nạp tiền",
+  "transaction": {
+    "id": "507f1f77bcf86cd799439011",
+    "amount": 100000,
+    "status": "approved",
+    "adminNote": "Đã duyệt yêu cầu nạp tiền"
+  }
+}
+```
+
+**Business Logic**:
+- Khi `approved`: Tự động cộng tiền vào ví user
+- Khi `rejected`: Không thay đổi số dư
+- Ghi log audit cho việc duyệt/từ chối
+- Gửi notification cho user
+
+### 3. Lấy danh sách yêu cầu rút tiền
+```http
+GET /admin/withdraw-requests?status=pending&userId=&page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response**: Tương tự như topup requests
+
+### 4. Duyệt/Từ chối yêu cầu rút tiền
+```http
+PATCH /wallet/withdraw/:transactionId/status
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "status": "approved",
+  "adminNote": "Đã duyệt yêu cầu rút tiền, chuyển khoản trong 24h"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "message": "Đã duyệt yêu cầu rút tiền",
+  "transaction": {
+    "id": "507f1f77bcf86cd799439011",
+    "amount": 50000,
+    "status": "approved",
+    "adminNote": "Đã duyệt yêu cầu rút tiền, chuyển khoản trong 24h"
+  }
+}
+```
+
+**Business Logic**:
+- Khi `approved`: Tự động trừ tiền từ ví user
+- Khi `rejected`: Hoàn tiền lại ví user
+- Admin cần thực hiện chuyển khoản thực tế
+- Gửi notification cho user
+
+### 5. Xem tất cả giao dịch hệ thống
+```http
+GET /wallet/transactions/all?page=1&limit=10&type=TOPUP&status=approved&userId=
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `type`: `TOPUP`, `WITHDRAW`, `GIFT`, `REWARD`, `REFERRAL`
+- `status`: `pending`, `approved`, `rejected`, `completed`, `failed`, `cancelled`
+- `userId`: Filter theo user cụ thể
+
+**Response (200)**:
+```json
+{
+  "transactions": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "userId": {
+        "_id": "507f1f77bcf86cd799439012",
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "type": "TOPUP",
+      "amount": 100000,
+      "status": "approved",
+      "description": "Yêu cầu nạp tiền thủ công",
+      "note": "Nạp tiền cho tài khoản",
+      "adminNote": "Đã duyệt yêu cầu nạp tiền",
+      "createdAt": "2023-12-01T00:00:00.000Z",
+      "updatedAt": "2023-12-01T01:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "limit": 10,
+    "total": 500,
+    "totalPages": 50
+  }
+}
+```
+
+---
+
+## 🎁 GIFT MANAGEMENT MODULE
+
+### 1. Lấy tất cả quà trong hệ thống
+```http
+GET /admin/gifts?isActive=true&page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `isActive` (optional): `true`/`false` - Filter theo trạng thái hoạt động
+- `page`, `limit`: Pagination
+
+**Response (200)**:
+```json
+{
+  "gifts": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Hoa Hồng",
+      "description": "Bông hoa hồng đỏ tượng trưng cho tình yêu",
+      "iconUrl": "https://example.com/icons/rose.png",
+      "price": 1000,
+      "category": "premium",
+      "status": "active",
+      "rarity": "common",
+      "maxClaimsPerUser": null,
+      "canSendInLive": true,
+      "totalClaimed": 0,
+      "totalSent": 150,
+      "totalRevenue": 150000,
+      "createdAt": "2023-12-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3
+  }
+}
+```
+
+### 2. Tạo quà mới
+```http
+POST /gifts
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "name": "Kim Cương",
+  "description": "Kim cương lấp lánh cao cấp",
+  "iconUrl": "https://example.com/icons/diamond.png",
+  "price": 50000,
+  "category": "premium",
+  "status": "active",
+  "rarity": "legendary",
+  "canSendInLive": true,
+  "animation": "diamond-sparkle"
+}
+```
+
+**Validation Rules**:
+- `name`: String, 2-100 ký tự, unique
+- `description`: String, max 500 ký tự
+- `iconUrl`: URL hợp lệ
+- `price`: Number, min: 0 (0 = free gift)
+- `category`: `reward` (free) | `premium` (paid)
+- `rarity`: `common` | `rare` | `epic` | `legendary`
+
+### 3. Cập nhật quà
+```http
+PUT /gifts/:giftId
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+### 4. Xóa quà
+```http
+DELETE /gifts/:giftId
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**⚠️ Lưu ý**: Chỉ có thể xóa quà chưa được sử dụng
+
+---
+
+## ⚙️ SYSTEM CONFIGURATION MODULE
+
+### 1. Lấy cấu hình hệ thống
+```http
+GET /admin/config
+```
+**🔒 Roles**: `SUPERADMIN` only
+
+**Response (200)**:
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "key": "main",
+  "minTopup": 10000,
+  "maxWithdraw": 10000000,
+  "commissionRate": 5,
+  "giftBonusRate": 10,
+  "createdAt": "2023-12-01T00:00:00.000Z",
+  "updatedAt": "2023-12-01T00:00:00.000Z"
+}
+```
+
+**Configuration Fields**:
+- `minTopup`: Số tiền nạp tối thiểu (VND)
+- `maxWithdraw`: Số tiền rút tối đa (VND)
+- `commissionRate`: Tỷ lệ hoa hồng (%)
+- `giftBonusRate`: Tỷ lệ bonus quà (%)
+
+### 2. Cập nhật cấu hình hệ thống
+```http
+PATCH /admin/config
+```
+**🔒 Roles**: `SUPERADMIN` only
+
+**Request Body**:
+```json
+{
+  "minTopup": 50000,
+  "maxWithdraw": 50000000,
+  "commissionRate": 3,
+  "giftBonusRate": 15
+}
+```
+
+**Validation Rules**:
+- `minTopup`: Number, min: 0
+- `maxWithdraw`: Number, min: 0
+- `commissionRate`: Number, 0-100
+- `giftBonusRate`: Number, 0-100
+
+**Response (200)**:
+```json
+{
+  "message": "System configuration updated successfully",
+  "config": {
+    "minTopup": 50000,
+    "maxWithdraw": 50000000,
+    "commissionRate": 3,
+    "giftBonusRate": 15
+  }
+}
+```
+
+**⚠️ Important**: Chỉ SUPERADMIN mới có quyền thay đổi config hệ thống
+
+---
+
+## 📊 ANALYTICS & STATISTICS MODULE
+
+### 1. Dashboard tổng quan
+```http
+GET /admin/dashboard
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "userCount": 1500,
+  "totalTransactions": 2500,
+  "pendingTopups": 15,
+  "pendingWithdraws": 8,
+  "todayRevenue": 5000000,
+  "monthlyRevenue": 150000000,
+  "activeStreams": 25,
+  "totalGifts": 50
+}
+```
+
+### 2. Thống kê chi tiết
+```http
+GET /admin/stats
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "users": {
+    "total": 1500,
+    "active": 1200,
+    "newThisMonth": 150,
+    "byRole": {
+      "user": 1400,
+      "streamer": 80,
+      "moderator": 15,
+      "admin": 5
+    }
+  },
+  "financial": {
+    "totalBalance": 500000000,
+    "monthlyTopup": 200000000,
+    "monthlyWithdraw": 50000000,
+    "pendingRequests": 23
+  },
+  "gifts": {
+    "totalSent": 10000,
+    "totalRevenue": 50000000,
+    "popularGifts": [
+      {
+        "name": "Hoa Hồng",
+        "totalSent": 2000,
+        "revenue": 2000000
+      }
+    ]
+  },
+  "streams": {
+    "totalStreams": 500,
+    "activeNow": 25,
+    "averageViewers": 50,
+    "topStreamers": [
+      {
+        "name": "John Streamer",
+        "totalStreams": 100,
+        "totalViewers": 50000
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 💬 CHAT & SUPPORT MANAGEMENT
+
+### 1. Lấy tất cả support rooms
+```http
+GET /chat/support/rooms
+```
+**🔒 Roles**: `ADMIN`, `STAFF`
+
+**Response (200)**:
+```json
+{
+  "rooms": [
+    {
+      "roomId": "support_507f1f77bcf86cd799439011",
+      "user": {
+        "_id": "507f1f77bcf86cd799439011",
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "lastMessage": {
+        "message": "I need help with payment",
+        "sentAt": "2023-12-01T10:30:00.000Z"
+      },
+      "unreadCount": 3,
+      "status": "open"
+    }
+  ]
+}
+```
+
+### 2. Xem chat support của user cụ thể
+```http
+GET /chat/support/:userId?cursor=&limit=20&order=desc
+```
+**🔒 Roles**: `ADMIN`, `STAFF`
+
+### 3. Gửi tin nhắn support
+```http
+POST /chat/send
+```
+**🔒 Roles**: `ADMIN`, `STAFF`
+
+**Request Body**:
+```json
+{
+  "roomId": "support_507f1f77bcf86cd799439011",
+  "message": "Chúng tôi sẽ hỗ trợ bạn ngay",
+  "isSupport": true,
+  "sentBy": "admin"
+}
+```
+
+---
+
+## 📺 LIVESTREAM MANAGEMENT
+
+### 1. Lấy tất cả streams (Admin view)
+```http
+GET /stream/admin?status=live&page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `status`: `live`, `ended`, `scheduled`
+- `streamerId`: Filter theo streamer
+- `page`, `limit`: Pagination
+
+**Response (200)**:
+```json
+{
+  "streams": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "title": "Gaming Stream - Playing Valorant",
+      "description": "Chơi game Valorant cùng với bạn bè!",
+      "status": "live",
+      "viewerCount": 150,
+      "duration": 3600,
+      "streamer": {
+        "_id": "507f1f77bcf86cd799439012",
+        "name": "John Streamer",
+        "email": "john@example.com"
+      },
+      "roomId": "room_507f1f77bcf86cd799439011",
+      "startedAt": "2023-12-01T10:00:00.000Z",
+      "revenue": 50000,
+      "giftCount": 25
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "totalPages": 10
+  }
+}
+```
+
+### 2. Kết thúc stream (Admin action)
+```http
+DELETE /stream/:streamId
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "reason": "Violation of community guidelines",
+  "adminNote": "Stream contained inappropriate content"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "title": "Gaming Stream - Playing Valorant",
+  "status": "ended",
+  "endedAt": "2023-12-01T11:00:00.000Z",
+  "streamer": {
+    "_id": "507f1f77bcf86cd799439012",
+    "name": "John Streamer",
+    "email": "john@example.com"
+  },
+  "adminNote": "Stream contained inappropriate content"
+}
+```
+
+### 3. Lấy thống kê livestream (Admin)
+```http
+GET /stream/admin/analytics?type=streams
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `type`: `streams` (default), `viewers`, `rooms`
+
+**Response (200)**:
+```json
+{
+  "totalStreams": 500,
+  "activeStreams": 25,
+  "endedStreams": 475,
+  "totalViewers": 12500,
+  "averageViewersPerStream": 50,
+  "totalRevenue": 150000000,
+  "topStreamers": [
+    {
+      "_id": "507f1f77bcf86cd799439012",
+      "name": "John Streamer",
+      "totalStreams": 100,
+      "totalViewers": 5000,
+      "totalRevenue": 10000000
+    }
+  ],
+  "timestamp": "2023-12-01T10:00:00.000Z"
+}
+```
+
+---
+
+## 🔔 NOTIFICATION & BROADCAST SYSTEM
+
+### 1. Tạo thông báo cho user cụ thể
+```http
+POST /notifications
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "userId": "507f1f77bcf86cd799439011",
+  "title": "Thông báo quan trọng",
+  "content": "Tài khoản của bạn cần xác thực thêm",
+  "type": "system",
+  "metadata": {
+    "priority": "high",
+    "actionRequired": true,
+    "actionUrl": "/verify-account"
+  }
+}
+```
+
+**Response (201)**:
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "userId": "507f1f77bcf86cd799439012",
+  "title": "Thông báo quan trọng",
+  "content": "Tài khoản của bạn cần xác thực thêm",
+  "type": "system",
+  "read": false,
+  "metadata": {
+    "priority": "high",
+    "actionRequired": true,
+    "actionUrl": "/verify-account"
+  },
+  "createdAt": "2023-12-01T10:00:00.000Z"
+}
+```
+
+### 2. Tạo thông báo broadcast toàn hệ thống
+```http
+POST /notifications/broadcast
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Request Body**:
+```json
+{
+  "title": "🎉 Sự kiện đặc biệt cuối tuần!",
+  "content": "Nhận quà miễn phí và giảm giá 50% tất cả gifts. Chỉ từ 18-20/12/2023!",
+  "type": "system",
+  "metadata": {
+    "eventId": "weekend_event_2023",
+    "priority": "medium",
+    "category": "promotion",
+    "eventStart": "2023-12-18T00:00:00.000Z",
+    "eventEnd": "2023-12-20T23:59:59.000Z"
+  },
+  "targetUserIds": ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+}
+```
+
+**Target Options**:
+- Không có `targetUserIds`: Gửi cho **tất cả users** trong hệ thống
+- Có `targetUserIds`: Gửi cho **danh sách users cụ thể**
+
+**Response (201)**:
+```json
+{
+  "totalCreated": 1250,
+  "targetUserIds": ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"],
+  "notificationData": {
+    "title": "🎉 Sự kiện đặc biệt cuối tuần!",
+    "content": "Nhận quà miễn phí và giảm giá 50% tất cả gifts...",
+    "type": "system",
+    "metadata": {
+      "eventId": "weekend_event_2023",
+      "priority": "medium",
+      "category": "promotion"
+    }
+  },
+  "createdAt": "2023-12-01T10:00:00.000Z"
+}
+```
+
+### 3. Lấy thống kê thông báo (Admin)
+```http
+GET /notifications/admin/stats
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "totalNotifications": 5420,
+  "unreadNotifications": 1250,
+  "readNotifications": 4170,
+  "notificationsToday": 85,
+  "unreadPercentage": 23,
+  "notificationsByType": [
+    {
+      "_id": "system",
+      "count": 1200,
+      "unreadCount": 450
+    },
+    {
+      "_id": "gift",
+      "count": 2800,
+      "unreadCount": 600
+    },
+    {
+      "_id": "topup",
+      "count": 1420,
+      "unreadCount": 200
+    }
+  ]
+}
+```
+
+### 4. Xem tất cả thông báo (Admin)
+```http
+GET /notifications/admin/all?page=1&limit=20&type=system&userId=507f1f77bcf86cd799439011
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Query Parameters**:
+- `page` (optional): Số trang (default: 1)
+- `limit` (optional): Số items mỗi trang (default: 20)
+- `type` (optional): Filter theo type (`system`, `gift`, `topup`, `withdraw`)
+- `userId` (optional): Filter theo user ID cụ thể
+- `read` (optional): Filter theo trạng thái đọc (`true`, `false`)
+
+**Response (200)**:
+```json
+{
+  "notifications": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "userId": {
+        "_id": "507f1f77bcf86cd799439012",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "role": "user"
+      },
+      "title": "Bảo trì hệ thống",
+      "content": "Hệ thống sẽ bảo trì từ 2:00 - 4:00 sáng ngày mai",
+      "type": "system",
+      "read": false,
+      "metadata": {
+        "priority": "high",
+        "category": "maintenance"
+      },
+      "createdAt": "2023-12-01T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "limit": 20,
+    "total": 450,
+    "totalPages": 23
+  }
+}
+```
+
+---
+
+## 🔌 SOCKET & REDIS REAL-TIME FEATURES
+
+### Admin Socket Connection
+Admin có thể kết nối với Socket Gateway để nhận real-time updates và điều khiển hệ thống.
+
+**Socket URL**: `ws://localhost:4001` (hoặc production URL)
+
+### 1. Kết nối Socket cho Admin
+```javascript
+const socket = io('ws://localhost:4001', {
+  auth: {
+    token: adminJwtToken
+  },
+  query: {
+    role: 'admin',
+    adminId: 'admin_123'
+  }
+});
+
+// Join admin rooms
+socket.emit('joinAdminRoom', {
+  adminId: 'admin_123',
+  roomType: 'dashboard',
+  permissions: ['chat', 'livestream', 'users', 'financial']
+});
+```
+
+### 2. Admin Chat Support
+```javascript
+// Trả lời chat của user
+socket.emit('adminReplyChat', {
+  adminId: 'admin_123',
+  userId: 'user_456',
+  message: 'Chúng tôi sẽ hỗ trợ bạn ngay!',
+  supportType: 'technical',
+  priority: 'high'
+});
+
+// Lắng nghe yêu cầu hỗ trợ mới
+socket.on('newSupportRequest', (data) => {
+  console.log('New support request:', data);
+  // {
+  //   userId: 'user_456',
+  //   username: 'JohnDoe',
+  //   message: 'Tôi cần hỗ trợ thanh toán',
+  //   supportType: 'payment',
+  //   priority: 'medium',
+  //   timestamp: '2023-12-01T10:00:00.000Z'
+  // }
+});
+```
+
+### 3. Admin Control Livestream
+```javascript
+// Điều khiển livestream
+socket.emit('adminControlStream', {
+  adminId: 'admin_123',
+  streamId: 'stream_789',
+  action: 'stop', // stop, warn, mute
+  reason: 'Violation of terms',
+  notify: true
+});
+
+// Lắng nghe sự kiện stream
+socket.on('streamEvent', (data) => {
+  console.log('Stream event:', data);
+  // {
+  //   streamId: 'stream_789',
+  //   event: 'started', // started, ended, reported
+  //   streamer: 'JohnStreamer',
+  //   viewerCount: 150,
+  //   timestamp: '2023-12-01T10:00:00.000Z'
+  // }
+});
+```
+
+### 4. Admin Broadcast Notifications
+```javascript
+// Gửi thông báo hệ thống
+socket.emit('adminBroadcast', {
+  adminId: 'admin_123',
+  type: 'system',
+  title: 'Bảo trì hệ thống',
+  message: 'Hệ thống sẽ bảo trì từ 2h-4h sáng',
+  targetUsers: 'all',
+  priority: 'high'
+});
+```
+
+### 5. Admin Dashboard Real-time
+```javascript
+// Lắng nghe thống kê real-time
+socket.on('systemStats', (data) => {
+  console.log('System stats:', data);
+  // {
+  //   activeUsers: 1250,
+  //   activeStreams: 45,
+  //   totalRevenue: 50000000,
+  //   supportQueue: 12,
+  //   systemHealth: 'good'
+  // }
+});
+
+// Lắng nghe cảnh báo hệ thống
+socket.on('systemAlert', (data) => {
+  console.log('System alert:', data);
+  // {
+  //   type: 'error',
+  //   message: 'Database connection unstable',
+  //   severity: 'high',
+  //   timestamp: '2023-12-01T10:00:00.000Z'
+  // }
+});
+```
+
+### 6. Admin User Management
+```javascript
+// Quản lý user
+socket.emit('adminManageUser', {
+  adminId: 'admin_123',
+  userId: 'user_456',
+  action: 'ban', // ban, unban, warn, promote
+  duration: 86400, // seconds
+  reason: 'Spam behavior'
+});
+
+// Lắng nghe hoạt động user
+socket.on('userActivity', (data) => {
+  console.log('User activity:', data);
+  // Real-time user activity updates
+});
+```
+
+### Redis Channels cho Admin
+```javascript
+// Admin-specific Redis channels
+const ADMIN_REDIS_CHANNELS = {
+  ADMIN_CHAT: 'admin.chat',
+  ADMIN_ALERTS: 'admin.alerts', 
+  ADMIN_STATS: 'admin.stats',
+  SUPPORT_QUEUE: 'support.queue',
+  STREAM_MONITOR: 'stream.monitor',
+  TRANSACTION_MONITOR: 'transaction.monitor'
+};
+
+// Subscribe to admin channels
+await redis.subscribe('admin.alerts', (data) => {
+  const alert = JSON.parse(data);
+  socket.to('admin_dashboard').emit('systemAlert', alert);
+});
+```
+
+### Complete Admin Socket Implementation
+```javascript
+class AdminSocketClient {
+  constructor(adminToken, adminId) {
+    this.adminToken = adminToken;
+    this.adminId = adminId;
+    this.socket = null;
+    this.init();
+  }
+
+  async init() {
+    this.socket = io('ws://localhost:4001', {
+      auth: { token: this.adminToken },
+      query: { role: 'admin', adminId: this.adminId }
+    });
+
+    this.socket.on('connect', () => {
+      console.log('✅ Admin connected');
+      this.joinAdminRooms();
+    });
+
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    // Support requests
+    this.socket.on('newSupportRequest', (data) => {
+      this.handleNewSupportRequest(data);
+    });
+
+    // System stats
+    this.socket.on('systemStats', (data) => {
+      this.updateDashboard(data);
+    });
+
+    // System alerts
+    this.socket.on('systemAlert', (alert) => {
+      this.showAlert(alert);
+    });
+
+    // Stream events
+    this.socket.on('streamEvent', (data) => {
+      this.updateStreamMonitor(data);
+    });
+
+    // Transaction alerts
+    this.socket.on('transactionAlert', (data) => {
+      this.showTransactionAlert(data);
+    });
+  }
+
+  joinAdminRooms() {
+    this.socket.emit('joinAdminRoom', {
+      adminId: this.adminId,
+      roomType: 'dashboard',
+      permissions: ['chat', 'livestream', 'users', 'financial']
+    });
+  }
+
+  replyToUser(userId, message, priority = 'medium') {
+    this.socket.emit('adminReplyChat', {
+      adminId: this.adminId,
+      userId: userId,
+      message: message,
+      priority: priority
+    });
+  }
+
+  controlStream(streamId, action, reason) {
+    this.socket.emit('adminControlStream', {
+      adminId: this.adminId,
+      streamId: streamId,
+      action: action,
+      reason: reason,
+      notify: true
+    });
+  }
+
+  broadcastNotification(data) {
+    this.socket.emit('adminBroadcast', {
+      adminId: this.adminId,
+      ...data
+    });
+  }
+}
+```
+
+**📖 Tham khảo thêm**: Chi tiết về Socket & Redis cho admin trong `SOCKET_REDIS_ADMIN_GUIDE.md`
+
+---
+
+## 🚨 MODERATION & SECURITY
+
+### 1. Báo cáo vi phạm
+```http
+GET /admin/reports?type=user&status=pending&page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `MODERATOR`
+
+**Report Types**:
+- `user`: Báo cáo user
+- `stream`: Báo cáo stream
+- `chat`: Báo cáo tin nhắn
+
+### 2. Xử lý báo cáo
+```http
+PATCH /admin/reports/:reportId
+```
+**🔒 Roles**: `ADMIN`, `MODERATOR`
+
+**Request Body**:
+```json
+{
+  "action": "ban_user",
+  "duration": 7,
+  "reason": "Spam and inappropriate behavior",
+  "adminNote": "Multiple violations detected"
+}
+```
+
+**Actions Available**:
+- `dismiss`: Bỏ qua báo cáo
+- `warn_user`: Cảnh báo user
+- `ban_user`: Ban user (có thời hạn)
+- `permanent_ban`: Ban vĩnh viễn
+- `remove_content`: Xóa nội dung
+
+### 3. Quản lý user bị ban
+```http
+GET /admin/banned-users?page=1&limit=10
+```
+**🔒 Roles**: `ADMIN`, `MODERATOR`
+
+### 4. Unban user
+```http
+PATCH /admin/users/:userId/unban
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+---
+
+## 📈 ADVANCED ANALYTICS
+
+### 1. Revenue Analytics
+```http
+GET /admin/analytics/revenue?period=month&year=2023
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "period": "month",
+  "year": 2023,
+  "data": [
+    {
+      "month": 1,
+      "totalRevenue": 10000000,
+      "giftRevenue": 8000000,
+      "topupAmount": 50000000,
+      "withdrawAmount": 20000000
+    }
+  ],
+  "summary": {
+    "totalYearRevenue": 120000000,
+    "averageMonthlyRevenue": 10000000,
+    "growth": 15.5
+  }
+}
+```
+
+### 2. User Analytics
+```http
+GET /admin/analytics/users?period=week
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+### 3. Gift Analytics
+```http
+GET /admin/analytics/gifts?period=month
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+---
+
+## 🛠️ ADMIN TOOLS & UTILITIES
+
+### 1. Cache Management
+```http
+POST /admin/tools/cache/clear
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "message": "System cache cleared successfully",
+  "clearedCaches": [
+    "user_sessions",
+    "stream_metadata", 
+    "gift_products",
+    "system_config"
+  ],
+  "timestamp": "2023-12-01T10:00:00.000Z"
+}
+```
+
+### 2. System Health Check
+```http
+GET /admin/tools/health
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "status": "healthy",
+  "services": {
+    "database": {
+      "status": "connected",
+      "responseTime": 15,
+      "connections": 25,
+      "collections": 12
+    },
+    "redis": {
+      "status": "connected",
+      "memory": "256MB",
+      "keys": 1500,
+      "connectedClients": 45
+    },
+    "livekit": {
+      "status": "connected",
+      "activeRooms": 15,
+      "participants": 150,
+      "wsUrl": "wss://wslive.loltips.net"
+    },
+    "socketGateway": {
+      "status": "connected",
+      "activeConnections": 1250,
+      "adminConnections": 5,
+      "port": 4001
+    }
+  },
+  "performance": {
+    "cpu": 45,
+    "memory": 60,
+    "disk": 75,
+    "uptime": 3600
+  },
+  "timestamp": "2023-12-01T10:00:00.000Z"
+}
+```
+
+### 3. Database Statistics
+```http
+GET /admin/tools/database/stats
+```
+**🔒 Roles**: `ADMIN`, `SUPERADMIN`
+
+**Response (200)**:
+```json
+{
+  "collections": {
+    "users": {
+      "documents": 1500,
+      "size": "2.5MB",
+      "indexes": 5
+    },
+    "streams": {
+      "documents": 500,
+      "size": "1.2MB",
+      "indexes": 3
+    },
+    "transactions": {
+      "documents": 2500,
+      "size": "5.8MB",
+      "indexes": 4
+    },
+    "notifications": {
+      "documents": 5420,
+      "size": "8.2MB",
+      "indexes": 3
+    }
+  },
+  "totalSize": "18.7MB",
+  "totalDocuments": 9920,
+  "timestamp": "2023-12-01T10:00:00.000Z"
+}
+```
+
+---
+
+## 🔧 ERROR HANDLING & TROUBLESHOOTING
+
+### Common Admin Errors
+
+#### 1. Permission Denied (403)
+```json
+{
+  "statusCode": 403,
+  "message": "Insufficient permissions for this action",
+  "error": "Forbidden",
+  "requiredRole": "SUPERADMIN",
+  "currentRole": "ADMIN"
+}
+```
+
+**Solution**: Kiểm tra role requirements cho endpoint
+
+#### 2. Resource Not Found (404)
+```json
+{
+  "statusCode": 404,
+  "message": "User not found",
+  "error": "Not Found",
+  "resourceType": "User",
+  "resourceId": "507f1f77bcf86cd799439011"
+}
+```
+
+#### 3. Validation Error (400)
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "error": "Bad Request",
+  "details": [
+    {
+      "field": "minTopup",
+      "message": "minTopup must be greater than or equal to 0"
+    }
+  ]
+}
+```
+
+#### 4. Business Logic Error (422)
+```json
+{
+  "statusCode": 422,
+  "message": "Cannot approve already processed transaction",
+  "error": "Unprocessable Entity",
+  "context": {
+    "transactionId": "507f1f77bcf86cd799439011",
+    "currentStatus": "approved"
+  }
+}
+```
+
+---
+
+## 🚀 ADMIN BEST PRACTICES
+
+### 1. Security Guidelines
+```javascript
+// Luôn validate role trước khi thực hiện actions quan trọng
+const validateAdminAction = (userRole, requiredRole) => {
+  const roleHierarchy = {
+    'user': 0,
+    'moderator': 1,
+    'staff': 2,
+    'admin': 3,
+    'superadmin': 4
+  };
+  
+  return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
+};
+
+// Log tất cả admin actions
+const logAdminAction = (adminId, action, target, details) => {
+  console.log(`[ADMIN_ACTION] ${adminId} performed ${action} on ${target}`, details);
+};
+```
+
+### 2. Financial Operations
+```javascript
+// Luôn double-check trước khi approve financial requests
+const approveFinancialRequest = async (transactionId, adminNote) => {
+  // 1. Validate transaction exists and is pending
+  const transaction = await getTransaction(transactionId);
+  if (!transaction || transaction.status !== 'pending') {
+    throw new Error('Invalid transaction for approval');
+  }
+  
+  // 2. Log the action
+  await logAdminAction(adminId, 'APPROVE_FINANCIAL', transactionId, {
+    amount: transaction.amount,
+    type: transaction.type,
+    adminNote
+  });
+  
+  // 3. Process the approval
+  return await processApproval(transactionId, adminNote);
+};
+```
+
+### 3. Bulk Operations
+```javascript
+// Xử lý bulk operations với rate limiting
+const bulkUpdateUsers = async (userIds, updates) => {
+  const batchSize = 10;
+  const results = [];
+  
+  for (let i = 0; i < userIds.length; i += batchSize) {
+    const batch = userIds.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(id => updateUser(id, updates))
+    );
+    results.push(...batchResults);
+    
+    // Rate limiting
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  return results;
+};
+```
+
+### 4. Real-time Monitoring
+```javascript
+// Setup admin dashboard real-time updates
+const setupAdminRealtime = (socket) => {
+  // Listen for new topup requests
+  socket.on('new_topup_request', (data) => {
+    updateTopupRequestsUI(data);
+    showNotification('New topup request received');
+  });
+  
+  // Listen for new support messages
+  socket.on('new_support_message', (data) => {
+    updateSupportChatUI(data);
+    playNotificationSound();
+  });
+  
+  // Listen for system alerts
+  socket.on('system_alert', (data) => {
+    showCriticalAlert(data);
+  });
+};
+```
+
+---
+
+## 📱 ADMIN DASHBOARD IMPLEMENTATION
+
+### React Admin Component Example
+```jsx
+import React, { useState, useEffect } from 'react';
+
+const AdminDashboard = () => {
+  const [stats, setStats] = useState({});
+  const [pendingRequests, setPendingRequests] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 30000); // Update every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsRes, requestsRes] = await Promise.all([
+        fetch('/admin/dashboard', { headers: getAuthHeaders() }),
+        fetch('/admin/topup-requests?status=pending', { headers: getAuthHeaders() })
+      ]);
+      
+      setStats(await statsRes.json());
+      setPendingRequests(await requestsRes.json());
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    }
+  };
+
+  const approveRequest = async (requestId) => {
+    try {
+      await fetch(`/wallet/topup/${requestId}/status`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          status: 'approved',
+          adminNote: 'Approved by admin'
+        })
+      });
+      
+      // Refresh data
+      fetchDashboardData();
+      showSuccessMessage('Request approved successfully');
+    } catch (error) {
+      showErrorMessage('Failed to approve request');
+    }
+  };
+
+  return (
+    <div className="admin-dashboard">
+      <div className="stats-grid">
+        <StatCard title="Total Users" value={stats.userCount} />
+        <StatCard title="Pending Topups" value={stats.pendingTopups} />
+        <StatCard title="Monthly Revenue" value={`${stats.monthlyRevenue?.toLocaleString()} VND`} />
+        <StatCard title="Active Streams" value={stats.activeStreams} />
+      </div>
+      
+      <div className="pending-requests">
+        <h3>Pending Topup Requests</h3>
+        {pendingRequests.map(request => (
+          <RequestCard 
+            key={request._id}
+            request={request}
+            onApprove={() => approveRequest(request._id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
+## 🔒 SECURITY CONSIDERATIONS
+
+### 1. Role-based Access Control
+- Implement strict role checking on both frontend and backend
+- Use middleware để validate permissions
+- Log tất cả admin actions for audit trail
+
+### 2. Sensitive Operations
+- Require additional confirmation cho critical actions
+- Implement 2FA cho admin accounts
+- Rate limit admin endpoints
+
+### 3. Data Protection
+- Mask sensitive user data in admin interfaces
+- Implement data retention policies
+- Regular security audits
+
+---
+
+## 📊 SYSTEM CONFIGURATION RECOMMENDATIONS
+
+### Recommended Configuration Values
+```json
+{
+  "minTopup": 10000,          // 10k VND minimum
+  "maxWithdraw": 10000000,    // 10M VND maximum per request
+  "commissionRate": 5,        // 5% platform commission
+  "giftBonusRate": 10,        // 10% bonus for gift senders
+  "maxDailyWithdraw": 50000000, // 50M VND daily limit
+  "autoApprovalThreshold": 100000, // Auto-approve topups under 100k
+  "suspiciousAmountThreshold": 5000000 // Flag transactions over 5M
+}
+```
+
+### Business Rules to Configure
+1. **Financial Limits**
+   - Minimum/Maximum transaction amounts
+   - Daily/Monthly limits per user
+   - Auto-approval thresholds
+
+2. **Gift System**
+   - Commission rates for platform
+   - Bonus rates for engagement
+   - Gift pricing tiers
+
+3. **User Management**
+   - Account verification requirements
+   - Suspension policies
+   - Role promotion criteria
+
+4. **Content Moderation**
+   - Auto-moderation thresholds
+   - Report handling procedures
+   - Ban duration policies
+
+---
+
+## 🆘 ADMIN SUPPORT & ESCALATION
+
+### Support Hierarchy
+1. **Level 1 - Staff**: Basic user support, chat moderation
+2. **Level 2 - Admin**: Financial approvals, user management
+3. **Level 3 - Superadmin**: System configuration, critical issues
+
+### Escalation Procedures
+- Financial disputes > 1M VND → Escalate to Superadmin
+- Technical issues affecting > 100 users → Immediate escalation
+- Security incidents → Emergency escalation protocol
+
+### Emergency Contacts
+- **Technical Lead**: For system outages
+- **Financial Manager**: For payment disputes
+- **Legal Team**: For compliance issues
+
+---
+
+## 🔗 RELATED DOCUMENTATION
+
+### 📚 Tài liệu liên quan:
+- **`SOCKET_REDIS_ADMIN_GUIDE.md`**: Hướng dẫn chi tiết Socket & Redis cho admin
+- **`SOCKET_REDIS_CLIENT_GUIDE.md`**: Hướng dẫn Socket & Redis cho client
+- **`BROADCAST_NOTIFICATION_GUIDE.md`**: Hướng dẫn hệ thống thông báo broadcast
+- **`API_USAGE_GUIDE.md`**: Hướng dẫn sử dụng API cho client
+- **`LIVE_CONTROLLER_GUIDE.md`**: Hướng dẫn quản lý livestream
+
+### 🛠️ Development Tools:
+- **Postman Collection**: `postman-collection.json`
+- **Swagger UI**: `http://localhost:3000/api` (development)
+- **Admin Dashboard**: `http://localhost:8000/admin` (development)
+
+### 🔧 Configuration Files:
+- **Environment**: `.env` hoặc `config.env`
+- **Database**: MongoDB connection string
+- **Redis**: Redis connection configuration
+- **LiveKit**: LiveKit server configuration
+
+### 📞 Support & Contact:
+- **Technical Issues**: Contact development team
+- **Security Concerns**: Report to security team
+- **Feature Requests**: Submit through proper channels
+
+---
+
+## 🚀 QUICK START FOR NEW ADMINS
+
+### 1. Setup Environment
+```bash
+# Clone repository
+git clone <repository-url>
+cd livestream-backend
+
+# Install dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with proper values
+
+# Start all services
+npm run start:all:dev
+```
+
+### 2. Admin Account Setup
+```bash
+# Create admin account (run seeder)
+npm run seed
+
+# Or manually create admin via API
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "admin123",
+    "name": "Admin User",
+    "role": "admin"
+  }'
+```
+
+### 3. First Login & Token
+```bash
+# Login to get JWT token
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "admin123"
+  }'
+
+# Use token in subsequent requests
+# Authorization: Bearer <jwt_token>
+```
+
+### 4. Test Admin Dashboard
+```bash
+# Check admin dashboard
+curl -X GET http://localhost:3000/admin/dashboard \
+  -H "Authorization: Bearer <jwt_token>"
+
+# Check system health
+curl -X GET http://localhost:3000/admin/tools/health \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### 5. Connect to Socket (Optional)
+```javascript
+// In browser console or Node.js
+const socket = io('ws://localhost:4001', {
+  auth: { token: '<jwt_token>' },
+  query: { role: 'admin', adminId: '<admin_id>' }
+});
+
+socket.on('connect', () => {
+  console.log('✅ Admin connected to socket');
+});
+```
+
+---
+
+## 📊 ADMIN DASHBOARD FEATURES
+
+### Real-time Monitoring
+- ✅ **Live Statistics**: Users, streams, revenue, support queue
+- ✅ **System Health**: Database, Redis, LiveKit, Socket status
+- ✅ **Stream Monitoring**: Active streams, viewer counts, reports
+- ✅ **Transaction Alerts**: Large transactions, suspicious activity
+- ✅ **Support Queue**: Real-time chat support requests
+
+### User Management
+- ✅ **User Search**: By email, role, status
+- ✅ **Role Management**: Promote/demote users
+- ✅ **Account Actions**: Ban, unban, warn users
+- ✅ **User Analytics**: Registration trends, activity patterns
+
+### Financial Management
+- ✅ **Transaction Approval**: Topup/withdraw requests
+- ✅ **Financial Analytics**: Revenue tracking, transaction patterns
+- ✅ **Suspicious Activity**: Fraud detection, large transaction alerts
+- ✅ **Balance Management**: User wallet monitoring
+
+### Content Moderation
+- ✅ **Stream Control**: Stop, warn, mute streams
+- ✅ **Chat Moderation**: Message filtering, user warnings
+- ✅ **Report Management**: User reports, content violations
+- ✅ **Automated Actions**: Rule-based moderation
+
+### System Administration
+- ✅ **Configuration Management**: System settings, limits
+- ✅ **Cache Management**: Clear system caches
+- ✅ **Database Tools**: Statistics, maintenance
+- ✅ **Broadcast Notifications**: System-wide announcements
+
+---
+
+*Last updated: December 2023*
+*Version: 2.0.0*
+*Access Level: Admin/Superadmin Only*
+*Includes: Socket & Redis Real-time Features* 

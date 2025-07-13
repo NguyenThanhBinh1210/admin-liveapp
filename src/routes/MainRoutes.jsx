@@ -34,6 +34,24 @@ const ConfigPage = Loadable(lazy(() => import('pages/config')));
 // render - stats page
 const StatsPage = Loadable(lazy(() => import('pages/stats')));
 
+// render - streams page
+const StreamsPage = Loadable(lazy(() => import('pages/streams')));
+
+// render - notifications page
+const NotificationsPage = Loadable(lazy(() => import('pages/notifications')));
+
+// render - support page
+const SupportPage = Loadable(lazy(() => import('pages/support')));
+
+// render - moderation page
+const ModerationPage = Loadable(lazy(() => import('pages/moderation')));
+
+// render - transactions page
+const TransactionsPage = Loadable(lazy(() => import('pages/transactions')));
+
+// render - tools page
+const ToolsPage = Loadable(lazy(() => import('pages/tools')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -96,6 +114,30 @@ const MainRoutes = {
     {
       path: 'stats',
       element: <StatsPage />
+    },
+    {
+      path: 'streams',
+      element: <StreamsPage />
+    },
+    {
+      path: 'notifications',
+      element: <NotificationsPage />
+    },
+    {
+      path: 'support',
+      element: <SupportPage />
+    },
+    {
+      path: 'moderation',
+      element: <ModerationPage />
+    },
+    {
+      path: 'transactions',
+      element: <TransactionsPage />
+    },
+    {
+      path: 'tools',
+      element: <ToolsPage />
     }
   ]
 };

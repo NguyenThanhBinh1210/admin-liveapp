@@ -52,6 +52,88 @@ export {
   getAdminLogsAPI
 } from './admin';
 
+// Export Livestream Management APIs
+export {
+  getStreamsAdminAPI,
+  endStreamAdminAPI,
+  getStreamAnalyticsAPI,
+  getStreamDetailsAPI,
+  updateStreamStatusAPI
+} from './stream';
+
+// Export Notification Management APIs
+export {
+  createNotificationAPI,
+  createBroadcastNotificationAPI,
+  getNotificationStatsAPI,
+  getAllNotificationsAPI,
+  deleteNotificationAPI,
+  markNotificationReadAPI
+} from './notification';
+
+// Export Support Chat Management APIs
+export {
+  getSupportRoomsAPI,
+  getSupportChatAPI,
+  sendSupportMessageAPI,
+  closeSupportRoomAPI,
+  getSupportStatsAPI,
+  assignSupportRequestAPI
+} from './support';
+
+// Export Moderation & Reports APIs
+export {
+  getReportsAPI,
+  handleReportAPI,
+  getBannedUsersAPI,
+  unbanUserAPI,
+  banUserAPI,
+  warnUserAPI,
+  getModerationStatsAPI,
+  getUserModerationHistoryAPI
+} from './moderation';
+
+// Export Advanced Analytics APIs
+export {
+  getRevenueAnalyticsAPI,
+  getUserAnalyticsAPI,
+  getGiftAnalyticsAPI,
+  getStreamAnalyticsDetailAPI,
+  getFinancialAnalyticsAPI,
+  getPlatformPerformanceAPI,
+  exportAnalyticsAPI
+} from './analytics';
+
+// Export Admin Tools APIs
+export {
+  clearSystemCacheAPI,
+  getDatabaseStatsAPI,
+  optimizeDatabaseAPI,
+  getSystemLogsAPI,
+  exportSystemLogsAPI,
+  getRedisStatsAPI,
+  clearRedisAPI,
+  getServerPerformanceAPI,
+  backupDatabaseAPI,
+  restoreDatabaseAPI,
+  getAuditLogsAPI
+} from './tools';
+
+// Export Transaction Management APIs
+export {
+  getAllTransactionsAPI,
+  getTransactionDetailsAPI,
+  updateTransactionStatusAPI,
+  getTransactionStatsAPI,
+  exportTransactionsAPI,
+  getSuspiciousTransactionsAPI,
+  flagTransactionAPI,
+  unflagTransactionAPI,
+  getUserTransactionHistoryAPI,
+  createManualTransactionAPI,
+  reverseTransactionAPI
+} from './transaction';
+
 // Export Menu API
 export { useGetMenuMaster, handlerDrawerOpen } from './menu';
 

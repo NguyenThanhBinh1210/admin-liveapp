@@ -1,5 +1,19 @@
 // assets
-import { UserOutlined, TeamOutlined, SettingOutlined, WalletOutlined, SendOutlined, GiftOutlined, BarChartOutlined } from '@ant-design/icons';
+import { 
+  UserOutlined, 
+  TeamOutlined, 
+  SettingOutlined, 
+  WalletOutlined, 
+  SendOutlined, 
+  GiftOutlined, 
+  BarChartOutlined,
+  VideoCameraOutlined,
+  NotificationOutlined,
+  MessageOutlined,
+  SafetyOutlined,
+  ToolOutlined,
+  FileTextOutlined
+} from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -9,7 +23,13 @@ const icons = {
   WalletOutlined,
   SendOutlined,
   GiftOutlined,
-  BarChartOutlined
+  BarChartOutlined,
+  VideoCameraOutlined,
+  NotificationOutlined,
+  MessageOutlined,
+  SafetyOutlined,
+  ToolOutlined,
+  FileTextOutlined
 };
 
 // ==============================|| MENU ITEMS - ADMIN ||============================== //
@@ -65,6 +85,54 @@ const admin = {
       type: 'item',
       url: '/stats',
       icon: icons.BarChartOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'streams',
+      title: 'Livestream Management',
+      type: 'item',
+      url: '/streams',
+      icon: icons.VideoCameraOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'notifications',
+      title: 'Notifications',
+      type: 'item',
+      url: '/notifications',
+      icon: icons.NotificationOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'support',
+      title: 'Support Chat',
+      type: 'item',
+      url: '/support',
+      icon: icons.MessageOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'moderation',
+      title: 'Moderation & Reports',
+      type: 'item',
+      url: '/moderation',
+      icon: icons.SafetyOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'transactions',
+      title: 'All Transactions',
+      type: 'item',
+      url: '/transactions',
+      icon: icons.FileTextOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'tools',
+      title: 'Admin Tools',
+      type: 'item',
+      url: '/tools',
+      icon: icons.ToolOutlined,
       breadcrumbs: false
     }
   ]
